@@ -1,0 +1,11 @@
+***plaindata***
+- :DisplaySettings:
+  - theme - "dark"
+  - fontSize - 14
+  - showLineNumbers - true
+  - accentColor - null
+  - pinnedTabs
+    - #1 - "inbox"
+    - #2 - "calendar"
+    - #3 - "notes"
+  - customRules - {}
