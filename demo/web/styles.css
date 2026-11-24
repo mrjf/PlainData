@@ -255,12 +255,19 @@ button.quiet:hover { color: var(--shell-ink); }
 }
 .notes.error { color: var(--err); background: var(--err-soft); }
 
-.t-header { color: var(--t-header); font-weight: 500; }
-.t-bullet { color: var(--t-bullet); }
-.t-concept { color: var(--t-concept); font-weight: 500; }
-.t-name { color: var(--t-name); }
-.t-index { color: var(--t-index); font-weight: 500; }
-.t-punct { color: var(--t-punct); }
-.t-string { color: var(--t-string); }
-.t-number { color: var(--t-number); }
-.t-keyword { color: var(--t-keyword); }
+.reader {
+  font: 14.5px/1.65 var(--sans);
+  white-space: normal;
+  padding: 18px 20px;
+}
+.pv-row { padding-left: calc(var(--depth, 0) * 20px); margin: 2px 0; }
+.pv-definition { font-size: 15px; margin-bottom: 4px; }
+.pv-name { color: var(--ink); font-weight: 600; }
+.pv-bullet { color: var(--muted); margin-right: 8px; }
+.pv-attr { font-weight: 500; color: var(--ink); }
+.pv-index { font: 500 12.5px var(--mono); color: var(--t-index); }
+.pv-sep { color: var(--muted); }
+.pv-string { font-family: var(--mono); font-size: 13px; color: var(--t-string); }
+.pv-number { font-family: var(--mono); font-size: 13px; color: var(--t-number); }
+.pv-keyword { font-family: var(--mono); font-size: 13px; color: var(--t-keyword); }
+.pv-empty { font-family: var(--mono); font-size: 13px; color: var(--muted); }

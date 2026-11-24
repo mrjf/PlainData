@@ -56,7 +56,7 @@ const EXAMPLES: Record<string, { concept: string; plain: string }> = {
 
 const plainInput = document.getElementById("plain-input") as HTMLTextAreaElement;
 const jsonInput = document.getElementById("json-input") as HTMLTextAreaElement;
-const formattedView = document.getElementById("formatted-view") as HTMLPreElement;
+const formattedView = document.getElementById("formatted-view") as HTMLDivElement;
 const conceptInput = document.getElementById("concept-input") as HTMLInputElement;
 const exampleSelect = document.getElementById("example-select") as HTMLSelectElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
@@ -73,42 +73,46 @@ function escapeHtml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function highlightScalar(raw: string): string {
+function renderScalar(raw: string): string {
   const escaped = escapeHtml(raw);
-  if (raw.startsWith('"')) return `<span class="t-string">${escaped}</span>`;
+  if (raw.startsWith('"')) return `<span class="pv-string">${escaped}</span>`;
   if (raw === "true" || raw === "false" || raw === "null") {
-    return `<span class="t-keyword">${escaped}</span>`;
+    return `<span class="pv-keyword">${escaped}</span>`;
   }
-  if (raw === "[]" || raw === "{}") return `<span class="t-punct">${escaped}</span>`;
-  return `<span class="t-number">${escaped}</span>`;
+  if (raw === "[]" || raw === "{}") return `<span class="pv-empty">${escaped}</span>`;
+  return `<span class="pv-number">${escaped}</span>`;
 }
 
-function highlightPlainData(source: string): string {
-  return source
-    .split("\n")
-    .map((line) => {
-      if (line === "***plaindata***") {
-        return `<span class="t-header">${escapeHtml(line)}</span>`;
-      }
-      const root = line.match(/^(- )(:[A-Za-z][A-Za-z0-9]*:)( - (.+))?$/);
-      if (root) {
-        const tail = root[4] !== undefined
-          ? `<span class="t-punct"> - </span>${highlightScalar(root[4])}`
-          : "";
-        return `<span class="t-bullet">${root[1]}</span><span class="t-concept">${escapeHtml(root[2]!)}</span>${tail}`;
-      }
-      const member = line.match(/^(\s*- )((?:#\d+)|(?:"(?:[^"\\]|\\.)*")|(?:[A-Za-z_$][A-Za-z0-9_$-]*))( - (.+))?$/);
-      if (member) {
-        const key = member[2]!;
-        const keyClass = key.startsWith("#") ? "t-index" : key.startsWith('"') ? "t-string" : "t-name";
-        const tail = member[4] !== undefined
-          ? `<span class="t-punct"> - </span>${highlightScalar(member[4])}`
-          : "";
-        return `<span class="t-bullet">${member[1]}</span><span class="${keyClass}">${escapeHtml(key)}</span>${tail}`;
-      }
-      return escapeHtml(line);
-    })
-    .join("\n");
+function renderReader(source: string): string {
+  const rows: string[] = [];
+  for (const line of source.split("\n")) {
+    if (line.trim() === "" || line.trim() === "***plaindata***") continue;
+    const indent = line.length - line.trimStart().length;
+    const depth = Math.floor(indent / 2);
+    if (!line.startsWith("- ", indent)) continue;
+    const body = line.slice(indent + 2);
+
+    const root = /^:([A-Za-z][A-Za-z0-9]*):(?: - (.+))?$/.exec(body);
+    if (root) {
+      const tail = root[2] !== undefined ? `<span class="pv-sep"> — </span>${renderScalar(root[2])}` : "";
+      rows.push(`<div class="pv-row pv-definition" style="--depth:${depth}"><strong class="pv-name">${escapeHtml(root[1]!)}</strong>${tail}</div>`);
+      continue;
+    }
+
+    const arr = /^(#\d+)(?: - (.+))?$/.exec(body);
+    if (arr) {
+      const tail = arr[2] !== undefined ? `<span class="pv-sep"> · </span>${renderScalar(arr[2])}` : "";
+      rows.push(`<div class="pv-row" style="--depth:${depth}"><span class="pv-index">${escapeHtml(arr[1]!)}</span>${tail}</div>`);
+      continue;
+    }
+
+    const member = /^("(?:[^"\\]|\\.)*"|[A-Za-z_$][A-Za-z0-9_$-]*)(?: - (.+))?$/.exec(body);
+    if (member) {
+      const tail = member[2] !== undefined ? `<span class="pv-sep"> — </span>${renderScalar(member[2])}` : "";
+      rows.push(`<div class="pv-row" style="--depth:${depth}"><span class="pv-bullet">•</span><span class="pv-attr">${escapeHtml(member[1]!)}</span>${tail}</div>`);
+    }
+  }
+  return rows.join("");
 }
 
 function setStatus(ok: boolean, message: string, meta = ""): void {
@@ -126,7 +130,7 @@ function syncFromPlain(): void {
     const json = stringifyJson(parsed.value, 2);
     conceptInput.value = parsed.concept;
     jsonInput.value = json + "\n";
-    formattedView.innerHTML = highlightPlainData(canonical);
+    formattedView.innerHTML = renderReader(canonical);
     plainNotes.textContent = "Round-trip verified";
     plainNotes.className = "notes";
     jsonNotes.textContent = `${json.length} bytes`;
@@ -145,7 +149,7 @@ function syncFromJson(): void {
     const concept = conceptInput.value.trim() || "Data";
     const plain = fromJson(jsonInput.value, concept);
     plainInput.value = plain;
-    formattedView.innerHTML = highlightPlainData(plain);
+    formattedView.innerHTML = renderReader(plain);
     jsonNotes.textContent = "Round-trip verified";
     jsonNotes.className = "notes";
     plainNotes.textContent = "Synced from JSON";
