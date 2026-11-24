@@ -1,4 +1,6 @@
 import {
+  applyTokens,
+  extractTokens,
   formatPlainData,
   fromJson,
   parsePlainData,
@@ -57,6 +59,34 @@ const EXAMPLES: Record<string, { concept: string; plain: string }> = {
 const plainInput = document.getElementById("plain-input") as HTMLTextAreaElement;
 const jsonInput = document.getElementById("json-input") as HTMLTextAreaElement;
 const formattedView = document.getElementById("formatted-view") as HTMLDivElement;
+const tokensBar = document.getElementById("tokens-bar") as HTMLDivElement;
+const tokenValues: Record<string, string> = {};
+
+function renderTokensBar(tokens: string[]): void {
+  tokensBar.hidden = tokens.length === 0;
+  const existing = Array.from(tokensBar.querySelectorAll<HTMLInputElement>("input[data-token]")).map(
+    (el) => el.dataset.token!,
+  );
+  if (existing.join(",") === tokens.join(",")) return;
+  tokensBar.innerHTML = "";
+  for (const token of tokens) {
+    const label = document.createElement("label");
+    label.className = "token-field";
+    const span = document.createElement("span");
+    span.textContent = `{{${token}}}`;
+    const input = document.createElement("input");
+    input.dataset.token = token;
+    input.value = tokenValues[token] ?? "";
+    input.placeholder = "JSON value";
+    input.addEventListener("input", () => {
+      if (input.value === "") delete tokenValues[token];
+      else tokenValues[token] = input.value;
+      syncFromPlain();
+    });
+    label.append(span, input);
+    tokensBar.appendChild(label);
+  }
+}
 const conceptInput = document.getElementById("concept-input") as HTMLInputElement;
 const exampleSelect = document.getElementById("example-select") as HTMLSelectElement;
 const statusEl = document.getElementById("status") as HTMLDivElement;
@@ -125,7 +155,10 @@ function setStatus(ok: boolean, message: string, meta = ""): void {
 
 function syncFromPlain(): void {
   try {
-    const parsed = parsePlainData(plainInput.value);
+    const tokens = extractTokens(plainInput.value);
+    renderTokensBar(tokens);
+    const applied = applyTokens(plainInput.value, tokenValues);
+    const parsed = parsePlainData(applied.text);
     const canonical = formatPlainData(parsed);
     const json = stringifyJson(parsed.value, 2);
     conceptInput.value = parsed.concept;
