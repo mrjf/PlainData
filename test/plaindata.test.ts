@@ -1,6 +1,8 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
+  applyTokens,
+  extractTokens,
   formatPlainData,
   formatPlainDataText,
   fromJson,
@@ -77,5 +79,14 @@ describe("PlainData", () => {
       () => parsePlainData("***plaindata***\n- :A:\n  - x - 1\n  - #1 - 2\n"),
       /consecutive array|Mixed collection/i,
     );
+  });
+
+  it("extracts and applies {{token}} templates before parsing", () => {
+    const tpl = "***plaindata***\n- :Theme:\n  - mode - {{mode}}\n  - size - {{size}}\n";
+    assert.deepEqual(extractTokens(tpl), ["mode", "size"]);
+    const applied = applyTokens(tpl, { mode: '"dark"', size: "14" });
+    assert.deepEqual(applied.missing, []);
+    assert.equal(applied.spans.length, 2);
+    assert.equal(toJson(applied.text), '{"mode":"dark","size":14}');
   });
 });

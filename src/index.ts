@@ -9,6 +9,13 @@ export {
 } from "./plaindata.js";
 
 export {
+  applyTokens,
+  extractTokens,
+  type AppliedTemplate,
+  type TokenSpan,
+} from "./template.js";
+
+export {
   JsonSyntaxError,
   parseJson,
   stringifyJson,
