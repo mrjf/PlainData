@@ -21,6 +21,12 @@
         </svg>
         <h1>PlainData Studio</h1>
       </div>
+      <nav class="family-links" aria-label="Plain family">
+        <a href="https://mrjf.github.io/PlainType/">PlainType</a>
+        <a href="./" aria-current="page">PlainData</a>
+        <a href="https://mrjf.github.io/PlainState/">PlainState</a>
+        <a href="https://mrjf.github.io/PlainView/">PlainView</a>
+      </nav>
       <div class="status" id="status" role="status" aria-live="polite" data-phase="synced">
         <span class="indicator" aria-hidden="true"></span>
         <span id="status-text">Synced</span>
@@ -30,7 +36,8 @@
         <label class="select-wrap">
           <span class="sr-only">Example</span>
           <select id="example-select" aria-label="Load example">
-            <option value="display-settings">DisplaySettings</option>
+            <option value="display-settings">DisplaySettings (tokenized)</option>
+            <option value="checkbox-fixtures">CheckboxFixtures (tokenized)</option>
             <option value="order">Order</option>
             <option value="exact-numbers">ExactNumbers</option>
           </select>
